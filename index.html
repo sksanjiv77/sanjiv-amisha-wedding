@@ -382,150 +382,161 @@ function drawScene() {
   bgX.restore();
 }
 
-/*
- * hinduShikhara(cx, baseY, r)
- * North Indian Nagara-style temple tower:
- *   - Curvilinear concave-taper body (rathas profile)
- *   - Amalaka disc near top (wide ribbed stone disc)
- *   - Kalasha pot finial at apex
- *   - Horizontal banding clipped inside the body
- * Width ≈ 2r at base, total height ≈ 2.8r
- */
-function hinduShikhara(cx, baseY, r) {
-  var h   = r * 2.8;
-  var tw  = r * 0.20;    /* tower half-width just below amalaka */
-  var amY = baseY - h;   /* amalaka bottom y */
-  var amW = r * 0.54;    /* amalaka half-width (wider than tower) */
-  var amH = r * 0.17;    /* amalaka disc thickness */
-  var kR  = r * 0.14;    /* kalasha pot radius */
+/* ── Mandap fabric drape ────────────────────────── */
+function drawDrape(x, yTop, width, yBot) {
+  var dg = bgX.createLinearGradient(x + width*0.5, yTop, x + width*0.5, yBot);
+  dg.addColorStop(0,    'rgba(220,170,110,0)');
+  dg.addColorStop(0.12, 'rgba(215,162,100,0.10)');
+  dg.addColorStop(0.65, 'rgba(205,148,88,0.12)');
+  dg.addColorStop(1,    'rgba(195,135,78,0)');
+  bgX.fillStyle = dg;
+  bgX.beginPath();
+  bgX.moveTo(x, yTop);
+  bgX.bezierCurveTo(x - width*0.10, yTop + (yBot-yTop)*0.35,
+                    x + width*0.12,  yTop + (yBot-yTop)*0.65,
+                    x + width*0.05,  yBot);
+  bgX.lineTo(x + width, yBot);
+  bgX.bezierCurveTo(x + width - width*0.05, yTop + (yBot-yTop)*0.65,
+                    x + width + width*0.10,  yTop + (yBot-yTop)*0.35,
+                    x + width, yTop);
+  bgX.closePath();
+  bgX.fill();
+}
 
-  /* Helper: trace the full shikhara outline (used twice — fill + clip) */
-  function outline() {
-    bgX.beginPath();
-    bgX.moveTo(cx - r, baseY);
-    /* left side: Nagara concave taper */
-    bgX.bezierCurveTo(
-      cx - r * 0.90, baseY - h * 0.28,
-      cx - r * 0.46, baseY - h * 0.68,
-      cx - tw, amY + amH
-    );
-    /* left amalaka step */
-    bgX.lineTo(cx - amW, amY + amH);
-    bgX.lineTo(cx - amW, amY);
-    bgX.lineTo(cx - tw * 0.72, amY);
-    /* kalasha pot */
-    bgX.lineTo(cx - kR * 0.68, amY - r * 0.02);
-    bgX.bezierCurveTo(cx - kR*1.5, amY - kR*1.2, cx - kR*0.6, amY - kR*2.9, cx, amY - kR*2.9);
-    bgX.bezierCurveTo(cx + kR*0.6, amY - kR*2.9, cx + kR*1.5, amY - kR*1.2, cx + kR*0.68, amY - r*0.02);
-    /* right amalaka step */
-    bgX.lineTo(cx + tw * 0.72, amY);
-    bgX.lineTo(cx + amW, amY);
-    bgX.lineTo(cx + amW, amY + amH);
-    bgX.lineTo(cx + tw, amY + amH);
-    /* right side taper down */
-    bgX.bezierCurveTo(
-      cx + r * 0.46, baseY - h * 0.68,
-      cx + r * 0.90, baseY - h * 0.28,
-      cx + r, baseY
-    );
-    bgX.closePath();
+/* ── Dense floral canopy along beam top ─────────── */
+function drawFloralCanopy(W, H, S, maxX) {
+  var PCOLS = [
+    'rgba(172,48,68,0.65)',   /* deep rose */
+    'rgba(218,182,155,0.70)', /* blush cream */
+    'rgba(188,78,48,0.60)',   /* saffron-orange */
+    'rgba(162,36,58,0.62)',   /* crimson */
+    'rgba(222,192,162,0.68)', /* pale cream */
+    'rgba(36,72,22,0.55)',    /* foliage green */
+  ];
+  var step = W * 0.028, col = 0;
+  for (var fx = 0; fx < maxX + step; fx += step) {
+    var r1 = S * (0.021 + (col % 3) * 0.007);
+    var y1 = H * (0.010 + (col % 5) * 0.007);
+    bgX.beginPath(); bgX.arc(fx, y1, r1, 0, Math.PI*2);
+    bgX.fillStyle = PCOLS[col % PCOLS.length]; bgX.fill();
+    bgX.beginPath(); bgX.arc(fx + step*0.5, H*(0.004 + (col%3)*0.009), r1*0.84, 0, Math.PI*2);
+    bgX.fillStyle = PCOLS[(col+2) % PCOLS.length]; bgX.fill();
+    bgX.beginPath(); bgX.arc(fx, y1, r1*0.30, 0, Math.PI*2);
+    bgX.fillStyle = PCOLS[(col+4) % PCOLS.length]; bgX.fill();
+    col++;
   }
-
-  /* Fill the body */
-  outline(); bgX.fill();
-
-  /* Horizontal banding (rathas) clipped inside the tower */
-  bgX.save();
-  outline(); bgX.clip();
-  bgX.strokeStyle = 'rgba(180,120,30,0.22)';
-  bgX.lineWidth = 0.9;
-  var band = r * 0.11;
-  for (var sy = amY + amH + band * 0.6; sy < baseY - 2; sy += band) {
-    bgX.beginPath();
-    bgX.moveTo(cx - r * 1.2, sy);
-    bgX.lineTo(cx + r * 1.2, sy);
-    bgX.stroke();
-  }
-  bgX.restore();
 }
 
 /*
  * drawTemple(W, H, isRight)
- * Hindu temple complex silhouette:
- *   - Four Nagara shikharas in stepped height composition
- *   - Mandapa (pillared hall) with layered flat roof in front
- *   - Three-tier jagati (stepped stone platform / plinth)
- *   - Tower garbhagriha shafts connecting shikharas to plinth
- * S = Math.min(W,H) keeps proportions correct on all screen sizes.
+ * Wedding mandap frame:
+ *   - Tall jali-lattice gold pillar on outer edge
+ *   - Horizontal torana beam with scalloped arch border
+ *   - Dense rose/foliage canopy above beam
+ *   - Translucent peach fabric drapes beside pillar
  */
 function drawTemple(W, H, isRight) {
   bgX.save();
   if (isRight) { bgX.translate(W, 0); bgX.scale(-1, 1); }
 
-  var FILL = 'rgba(88,46,11,0.34)';
-  bgX.fillStyle = FILL;
-  var S = Math.min(W, H);
+  var S       = Math.min(W, H);
+  var GOLD    = 'rgba(150,114,18,0.60)';
+  var GOLD_SH = 'rgba(100,64,4,0.66)';
 
-  /* Shikhara half-radii (S-based, stays round on any screen) */
-  var r1 = S * 0.092;   /* main shikhara */
-  var r2 = S * 0.058;   /* secondary */
-  var r3 = S * 0.037;   /* chatri */
-  var r4 = S * 0.024;   /* outer small tower */
+  /* Torana beam band across the top */
+  var bTop   = 0;
+  var bBot   = H * 0.108;
+  var bRight = W * 0.50;
 
-  /* Shikhara base positions */
-  var d1x = W * 0.120, d1y = H * 0.49;   /* main */
-  var d2x = W * 0.218, d2y = H * 0.56;   /* secondary */
-  var d3x = W * 0.272, d3y = H * 0.62;   /* chatri */
-  var d4x = W * 0.038, d4y = H * 0.44;   /* outer */
-  var wallY = H * 0.68;                    /* plinth top */
+  /* Pillar geometry — shaft starts where beam ends */
+  var pCx = W * 0.058;
+  var pW  = W * 0.068;
+  var pTop = bBot;
 
-  /* ── Three-tier jagati (stepped platform) ──────── */
-  bgX.fillRect(-2, wallY + H*0.014, W*0.32, H - wallY - H*0.014);  /* solid base */
-  bgX.fillRect(-2, wallY,           W*0.30, H*0.014);               /* tier 1 */
-  bgX.fillRect(-2, wallY - H*0.016, W*0.26, H*0.016);               /* tier 2 */
-  bgX.fillRect(-2, wallY - H*0.030, W*0.22, H*0.014);               /* tier 3 (inner) */
+  /* ── 1. Fabric drapes (behind everything) ── */
+  drawDrape(W*0.018, bBot, W*0.112, H);
+  drawDrape(W*0.082, bBot, W*0.090, H);
 
-  /* ── Mandapa (hall) with stepped flat roof ──────── */
-  var mCx = W * 0.068, mW = W * 0.082;
-  var mBase = wallY - H*0.030;
-  bgX.fillRect(mCx - mW, mBase - H*0.080, mW * 2, H * 0.080);         /* hall body */
-  bgX.fillRect(mCx - mW*0.86, mBase - H*0.080 - H*0.018, mW*1.72, H*0.018); /* roof layer 1 */
-  bgX.fillRect(mCx - mW*0.70, mBase - H*0.080 - H*0.034, mW*1.40, H*0.016); /* roof layer 2 */
-  bgX.fillRect(mCx - mW*0.52, mBase - H*0.080 - H*0.048, mW*1.04, H*0.014); /* roof layer 3 */
+  /* ── 2. Pillar shaft ── */
+  bgX.fillStyle = GOLD;
+  bgX.fillRect(pCx - pW/2, pTop, pW, H - pTop);
 
-  /* ── Garbhagriha shafts (tower bodies below shikharas) ── */
-  [[d1x,d1y,r1],[d2x,d2y,r2],[d3x,d3y,r3],[d4x,d4y,r4]].forEach(function(d) {
-    bgX.fillStyle = FILL;
-    var shaftW = d[2] * 0.90;
-    bgX.fillRect(d[0] - shaftW, d[1], shaftW * 2, wallY - d[1] + 2);
-    /* Chajja ledge (horizontal projecting eave) */
-    bgX.fillRect(d[0] - d[2]*1.18, d[1] + (wallY - d[1])*0.42, d[2]*2.36, d[2]*0.09);
+  /* 3-D cylindrical highlight */
+  var pGr = bgX.createLinearGradient(pCx - pW/2, 0, pCx + pW/2, 0);
+  pGr.addColorStop(0,    'rgba(0,0,0,0.28)');
+  pGr.addColorStop(0.15, 'rgba(255,212,58,0.22)');
+  pGr.addColorStop(0.50, 'rgba(255,232,88,0.26)');
+  pGr.addColorStop(0.85, 'rgba(255,212,58,0.18)');
+  pGr.addColorStop(1,    'rgba(0,0,0,0.32)');
+  bgX.fillStyle = pGr;
+  bgX.fillRect(pCx - pW/2, pTop, pW, H - pTop);
+
+  /* Jali diamond lattice — clipped to pillar rect */
+  bgX.save();
+  bgX.beginPath(); bgX.rect(pCx - pW/2, pTop, pW, H - pTop); bgX.clip();
+  var ls = pW * 0.40;
+  bgX.strokeStyle = 'rgba(66,34,0,0.34)'; bgX.lineWidth = 1.1;
+  for (var li = pTop - H; li < H * 2; li += ls) {
+    bgX.beginPath(); bgX.moveTo(pCx - H, pTop + li); bgX.lineTo(pCx + H, pTop + li + H*2); bgX.stroke();
+    bgX.beginPath(); bgX.moveTo(pCx + H, pTop + li); bgX.lineTo(pCx - H, pTop + li + H*2); bgX.stroke();
+  }
+  bgX.restore();
+
+  /* ── 3. Pillar base rings ── */
+  var rBot = H * 0.88;
+  bgX.fillStyle = GOLD_SH;
+  [1.40, 1.22, 1.42, 1.22, 1.40].forEach(function(rw, i) {
+    bgX.fillRect(pCx - pW*rw/2, rBot + i * H*0.016, pW*rw, H*0.013);
   });
 
-  /* ── Hindu shikharas ────────────────────────────── */
-  bgX.fillStyle = FILL;
-  hinduShikhara(d1x, d1y, r1);
-  hinduShikhara(d2x, d2y, r2);
-  hinduShikhara(d3x, d3y, r3);
-  hinduShikhara(d4x, d4y, r4);
+  /* ── 4. Pillar capital ── */
+  var capW = pW * 1.44;
+  var capH = H * 0.046;
+  bgX.fillStyle = GOLD;
+  bgX.fillRect(pCx - capW/2, pTop - capH, capW, capH);
+  bgX.fillStyle = GOLD_SH;
+  bgX.fillRect(pCx - capW/2, pTop - capH,       capW, H*0.005);
+  bgX.fillRect(pCx - capW/2, pTop - capH*0.30,  capW, H*0.004);
+  /* Curved corbel bracket above capital */
+  bgX.fillStyle = GOLD;
+  bgX.beginPath();
+  bgX.moveTo(pCx - capW/2, pTop - capH);
+  bgX.bezierCurveTo(pCx - capW/2,  pTop - capH - H*0.022,
+                    pCx - pW*0.55, pTop - capH - H*0.036,
+                    pCx,            pTop - capH - H*0.036);
+  bgX.bezierCurveTo(pCx + pW*0.55, pTop - capH - H*0.036,
+                    pCx + capW/2,   pTop - capH - H*0.022,
+                    pCx + capW/2,   pTop - capH);
+  bgX.closePath(); bgX.fill();
 
-  /* ── Far-left edge fill ─────────────────────────── */
-  bgX.fillStyle = FILL;
-  bgX.fillRect(-2, 0, W * 0.013, H);
+  /* ── 5. Torana beam ── */
+  bgX.fillStyle = GOLD;
+  bgX.fillRect(-4, bTop, bRight + 4, bBot);
+  var bGr = bgX.createLinearGradient(0, bTop, 0, bBot);
+  bGr.addColorStop(0,    'rgba(255,234,98,0.18)');
+  bGr.addColorStop(0.38, 'rgba(205,162,36,0.08)');
+  bGr.addColorStop(1,    'rgba(0,0,0,0.22)');
+  bgX.fillStyle = bGr; bgX.fillRect(-4, bTop, bRight + 4, bBot);
 
-  /* ── Warm diya / lamp glows on tower bodies ──────── */
-  [[d1x,            wallY - H*0.12],
-   [d1x + r1*0.14,  wallY - H*0.06],
-   [d2x,            wallY - H*0.09],
-   [d3x,            wallY - H*0.06]].forEach(function(w) {
-    var g = bgX.createRadialGradient(w[0], w[1], 0, w[0], w[1], S*0.034);
-    g.addColorStop(0,   'rgba(200,130,20,0.52)');
-    g.addColorStop(0.5, 'rgba(170,90,10,0.16)');
-    g.addColorStop(1,   'rgba(0,0,0,0)');
-    bgX.fillStyle = g;
-    bgX.beginPath(); bgX.arc(w[0], w[1], S*0.040, 0, Math.PI*2); bgX.fill();
-    bgX.fillStyle = FILL;
-  });
+  /* Scalloped arch border at bottom of beam */
+  bgX.fillStyle = GOLD_SH;
+  bgX.fillRect(-4, bBot - H*0.006, bRight + 4, H*0.006);
+  var archSp = W * 0.040;
+  bgX.fillStyle = GOLD;
+  bgX.beginPath();
+  bgX.moveTo(-4, bBot);
+  for (var ax = -4; ax < bRight; ax += archSp) {
+    bgX.bezierCurveTo(ax + archSp*0.25, bBot,
+                      ax + archSp*0.25, bBot + H*0.026,
+                      ax + archSp*0.50, bBot + H*0.026);
+    bgX.bezierCurveTo(ax + archSp*0.75, bBot + H*0.026,
+                      ax + archSp*0.75, bBot,
+                      ax + archSp,       bBot);
+  }
+  bgX.lineTo(bRight, bTop); bgX.lineTo(-4, bTop); bgX.closePath(); bgX.fill();
+
+  /* ── 6. Floral canopy above beam ── */
+  drawFloralCanopy(W, H, S, bRight);
 
   bgX.restore();
 }
