@@ -371,186 +371,233 @@ function drawScene() {
   vig.addColorStop(1, 'rgba(90,50,8,0.14)');
   bgX.fillStyle = vig; bgX.fillRect(0, 0, W, H);
 
-  /* Palace silhouettes */
-  drawPalace(W, H, false);
-  drawPalace(W, H, true);
+  /* Temple silhouettes (left + right mirror) */
+  drawTemple(W, H, false);
+  drawTemple(W, H, true);
 
-  /* Decorative branches with lanterns — left */
+  /* Branches + lanterns (left + right mirror) */
   drawBranchSide(W, H);
-  /* right (mirror) */
   bgX.save(); bgX.translate(W, 0); bgX.scale(-1, 1);
   drawBranchSide(W, H);
   bgX.restore();
 }
 
-/* ── Mughal onion dome ──────────────────────────── */
-function mughalDome(cx, baseY, w, h) {
+/*
+ * mughalDome(cx, baseY, r)
+ * Draws a proper Indian onion dome centred at cx, base at baseY.
+ * r is the "radius" — the dome bulges to ~0.95r on each side, height is ~1.7r.
+ * Width ≈ 1.9r, height ≈ 1.7r  → nearly circular when viewed, like a real dome.
+ */
+function mughalDome(cx, baseY, r) {
+  var dh = r * 1.55;   /* dome height from base-line to neck */
   bgX.beginPath();
-  bgX.moveTo(cx, baseY - h*1.14);
-  bgX.lineTo(cx + w*0.05, baseY - h*1.0);
-  bgX.bezierCurveTo(cx+w*0.12, baseY-h*0.85, cx+w*0.72, baseY-h*0.58, cx+w*0.44, baseY-h*0.08);
-  bgX.lineTo(cx + w*0.44, baseY);
-  bgX.lineTo(cx - w*0.44, baseY);
-  bgX.lineTo(cx - w*0.44, baseY - h*0.08);
-  bgX.bezierCurveTo(cx-w*0.72, baseY-h*0.58, cx-w*0.12, baseY-h*0.85, cx-w*0.05, baseY-h*1.0);
-  bgX.lineTo(cx, baseY - h*1.14);
+  /* Thin finial spike above dome */
+  bgX.moveTo(cx, baseY - dh - r * 0.20);
+  /* Right side: start narrow at finial, belly out wide, then pull back in to base */
+  bgX.bezierCurveTo(
+    cx + r * 0.14, baseY - dh,             /* just right of finial */
+    cx + r * 0.96, baseY - dh * 0.52,      /* maximum outward bulge */
+    cx + r * 0.44, baseY - r * 0.05        /* narrow neck before base */
+  );
+  bgX.lineTo(cx + r * 0.44, baseY);
+  bgX.lineTo(cx - r * 0.44, baseY);
+  bgX.lineTo(cx - r * 0.44, baseY - r * 0.05);
+  /* Left side: mirror */
+  bgX.bezierCurveTo(
+    cx - r * 0.96, baseY - dh * 0.52,
+    cx - r * 0.14, baseY - dh,
+    cx, baseY - dh - r * 0.20
+  );
   bgX.closePath();
   bgX.fill();
 }
 
-/* ── Palace silhouette with illuminated windows ─── */
-function drawPalace(W, H, isRight) {
+/*
+ * drawTemple(W, H, isRight)
+ * Draws a connected Indian palace / temple silhouette.
+ * Uses Math.min(W,H) as the scale reference so dome proportions
+ * look correct on both portrait (mobile) and landscape (desktop).
+ */
+function drawTemple(W, H, isRight) {
   bgX.save();
   if (isRight) { bgX.translate(W, 0); bgX.scale(-1, 1); }
 
-  bgX.fillStyle = 'rgba(90,48,12,0.32)';
-  var pw = W * 0.3;
+  var FILL = 'rgba(88,46,11,0.34)';
+  bgX.fillStyle = FILL;
 
-  /* Domes and towers */
-  mughalDome(pw*0.30, H*0.37, pw*0.30, H*0.34);
-  bgX.fillRect(pw*0.17, H*0.37, pw*0.26, H*0.63);
+  /* S = min(W,H) keeps domes round on any screen orientation */
+  var S = Math.min(W, H);
 
-  mughalDome(pw*0.65, H*0.44, pw*0.18, H*0.21);
-  bgX.fillRect(pw*0.56, H*0.44, pw*0.18, H*0.56);
+  /* ── Dome radii (all S-based) ──────────────────── */
+  var r1 = S * 0.098;   /* main dome — largest */
+  var r2 = S * 0.062;   /* secondary */
+  var r3 = S * 0.040;   /* chatri */
+  var r4 = S * 0.026;   /* outer minaret */
 
-  mughalDome(pw*0.87, H*0.52, pw*0.11, H*0.13);
-  bgX.fillRect(pw*0.82, H*0.52, pw*0.10, H*0.48);
+  /* ── Dome base positions ───────────────────────── */
+  var d1x = W * 0.128, d1y = H * 0.46;
+  var d2x = W * 0.224, d2y = H * 0.53;
+  var d3x = W * 0.282, d3y = H * 0.59;
+  var d4x = W * 0.040, d4y = H * 0.42;
 
-  mughalDome(pw*0.06, H*0.25, pw*0.08, H*0.22);
-  bgX.fillRect(pw*0.02, H*0.25, pw*0.08, H*0.75);
-
-  /* Ground mass */
+  /* ── Solid base wall ────────────────────────────── */
+  /* All tower shafts grow from this unified platform  */
+  var wallY = H * 0.66;
   bgX.beginPath();
-  bgX.moveTo(0, H*0.52); bgX.lineTo(pw*1.06, H*0.57);
-  bgX.lineTo(pw*1.06, H); bgX.lineTo(0, H);
-  bgX.closePath(); bgX.fill();
-  bgX.fillRect(0, 0, pw*0.015, H);
+  bgX.moveTo(-2, H);
+  bgX.lineTo(-2, wallY);
+  /* stepped crenellated top edge for wall */
+  var wallSteps = 6, wallW = W * 0.32;
+  for (var ws = 0; ws < wallSteps; ws++) {
+    var wx = (ws / wallSteps) * wallW;
+    var wh = (ws % 2 === 0) ? wallY : wallY + H * 0.018;
+    bgX.lineTo(wx, wh);
+    bgX.lineTo(wx + wallW / wallSteps, wh);
+  }
+  bgX.lineTo(W * 0.32, wallY + H * 0.03);
+  bgX.lineTo(W * 0.32, H);
+  bgX.closePath();
+  bgX.fill();
 
-  /* Illuminated windows (warm amber glows on the silhouette) */
-  [
-    [pw*0.20, H*0.44], [pw*0.26, H*0.54], [pw*0.22, H*0.62],
-    [pw*0.58, H*0.50], [pw*0.64, H*0.59], [pw*0.84, H*0.56]
-  ].forEach(function(w) {
-    var g = bgX.createRadialGradient(w[0], w[1], 0, w[0], w[1], pw*0.055);
-    g.addColorStop(0, 'rgba(200,130,20,0.52)');
-    g.addColorStop(0.5, 'rgba(180,100,10,0.18)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    bgX.fillStyle = g;
-    bgX.beginPath(); bgX.arc(w[0], w[1], pw*0.06, 0, Math.PI*2); bgX.fill();
+  /* ── Tower shafts ───────────────────────────────── */
+  /* Connect each dome base down to the base wall      */
+  [[d1x,d1y,r1],[d2x,d2y,r2],[d3x,d3y,r3],[d4x,d4y,r4]].forEach(function(d) {
+    var tx = d[0], ty = d[1], tr = d[2];
+    bgX.fillRect(tx - tr*0.44, ty, tr*0.88, wallY - ty + 4);
+    /* Decorative balcony ledge partway down shaft */
+    bgX.fillRect(tx - tr*0.58, ty + (wallY - ty)*0.42, tr*1.16, tr*0.10);
   });
 
-  /* General warm glow across the palace base */
-  var baseG = bgX.createLinearGradient(0, H*0.55, 0, H*0.70);
-  baseG.addColorStop(0, 'rgba(200,130,20,0.12)');
-  baseG.addColorStop(1, 'rgba(0,0,0,0)');
-  bgX.fillStyle = baseG;
-  bgX.fillRect(0, H*0.55, pw*1.1, H*0.15);
+  /* ── Domes ──────────────────────────────────────── */
+  /* Same fill colour → merges seamlessly with shafts  */
+  mughalDome(d1x, d1y, r1);
+  mughalDome(d2x, d2y, r2);
+  mughalDome(d3x, d3y, r3);
+  mughalDome(d4x, d4y, r4);
+
+  /* ── Far-left edge sliver ───────────────────────── */
+  bgX.fillRect(-2, 0, W * 0.013, H);
+
+  /* ── Warm window glows on tower bodies ─────────── */
+  bgX.fillStyle = FILL;
+  [[d1x,            wallY - H*0.11],
+   [d1x + r1*0.08,  wallY - H*0.05],
+   [d2x,            wallY - H*0.08],
+   [d3x,            wallY - H*0.05]].forEach(function(w) {
+    var g = bgX.createRadialGradient(w[0], w[1], 0, w[0], w[1], S*0.036);
+    g.addColorStop(0,   'rgba(200,130,20,0.52)');
+    g.addColorStop(0.5, 'rgba(170,90,10,0.15)');
+    g.addColorStop(1,   'rgba(0,0,0,0)');
+    bgX.fillStyle = g;
+    bgX.beginPath(); bgX.arc(w[0], w[1], S*0.042, 0, Math.PI*2); bgX.fill();
+    bgX.fillStyle = FILL;
+  });
 
   bgX.restore();
 }
 
-/* ── Decorative branch + lanterns (left side) ────── */
+/* ── Decorative branch + lanterns (left side, mirrored for right) ── */
 function drawBranchSide(W, H) {
-  var bc = 'rgba(80,44,10,0.52)';
+  var S   = Math.min(W, H);
+  var bc  = 'rgba(80,44,10,0.50)';
 
-  /* ── Main diagonal branch ─────────────────────── */
+  /* Main diagonal branch */
   bgX.strokeStyle = bc; bgX.lineCap = 'round'; bgX.lineJoin = 'round';
-  bgX.lineWidth = 4.0;
+  bgX.lineWidth = 3.8;
   bgX.beginPath();
   bgX.moveTo(-14, -6);
   bgX.bezierCurveTo(W*0.028, H*0.07, W*0.09,  H*0.16, W*0.14, H*0.30);
   bgX.bezierCurveTo(W*0.185, H*0.40, W*0.175, H*0.50, W*0.13, H*0.60);
   bgX.stroke();
 
-  /* ── Sub-branch A (top — lantern 1) ─────────────── */
-  bgX.lineWidth = 2.6;
+  /* Sub-branch A */
+  bgX.lineWidth = 2.5;
   bgX.beginPath();
   bgX.moveTo(W*0.032, H*0.065);
   bgX.bezierCurveTo(W*0.09, H*0.04, W*0.185, H*0.04, W*0.235, H*0.08);
   bgX.stroke();
 
-  /* ── Sub-branch B (mid — lantern 2) ──────────────── */
-  bgX.lineWidth = 2.2;
+  /* Sub-branch B */
+  bgX.lineWidth = 2.1;
   bgX.beginPath();
   bgX.moveTo(W*0.11, H*0.21);
   bgX.bezierCurveTo(W*0.16, H*0.18, W*0.255, H*0.18, W*0.295, H*0.22);
   bgX.stroke();
 
-  /* ── Twigs ────────────────────────────────────────── */
-  bgX.lineWidth = 1.3;
-  [
-    [W*0.005, H*0.022, W*0.030, H*0.008],
-    [W*0.060, H*0.090, W*0.072, H*0.048],
-    [W*0.102, H*0.065, W*0.130, H*0.032],
-    [W*0.195, H*0.065, W*0.210, H*0.025],
-    [W*0.142, H*0.185, W*0.162, H*0.145],
-    [W*0.220, H*0.200, W*0.245, H*0.160],
+  /* Twigs */
+  bgX.lineWidth = 1.2;
+  [[W*0.005,H*0.022,W*0.030,H*0.008],[W*0.060,H*0.090,W*0.072,H*0.048],
+   [W*0.102,H*0.065,W*0.130,H*0.032],[W*0.195,H*0.065,W*0.210,H*0.025],
+   [W*0.142,H*0.185,W*0.162,H*0.145],[W*0.220,H*0.200,W*0.245,H*0.160]
   ].forEach(function(t) {
     bgX.beginPath(); bgX.moveTo(t[0],t[1]); bgX.lineTo(t[2],t[3]); bgX.stroke();
   });
 
-  /* ── Flowers ──────────────────────────────────────── */
-  [
-    [W*0.003, H*0.015, 7], [W*0.034, H*0.007, 6], [W*0.064, H*0.048, 8],
-    [W*0.103, H*0.033, 6], [W*0.140, H*0.031, 7], [W*0.203, H*0.026, 6],
-    [W*0.212, H*0.066, 7], [W*0.240, H*0.083, 6], [W*0.144, H*0.145, 6],
-    [W*0.165, H*0.148, 5], [W*0.225, H*0.160, 6], [W*0.248, H*0.163, 5],
-    [W*0.082, H*0.096, 5], [W*0.050, H*0.055, 6],
-  ].forEach(function(f) {
-    bgX.beginPath(); bgX.arc(f[0], f[1], f[2], 0, Math.PI*2);
-    bgX.fillStyle = 'rgba(130,30,52,0.35)'; bgX.fill();
-    bgX.beginPath(); bgX.arc(f[0], f[1], f[2]*0.38, 0, Math.PI*2);
-    bgX.fillStyle = 'rgba(165,115,18,0.58)'; bgX.fill();
+  /* Flowers — size relative to S so they scale properly */
+  var fdata = [
+    [W*0.003,H*0.015,1.0],[W*0.034,H*0.007,0.8],[W*0.064,H*0.048,1.1],
+    [W*0.103,H*0.033,0.9],[W*0.140,H*0.031,1.0],[W*0.203,H*0.026,0.8],
+    [W*0.212,H*0.066,1.0],[W*0.240,H*0.083,0.8],[W*0.144,H*0.145,0.9],
+    [W*0.165,H*0.148,0.7],[W*0.225,H*0.160,0.9],[W*0.248,H*0.163,0.7],
+    [W*0.082,H*0.096,0.7],[W*0.050,H*0.055,0.9]
+  ];
+  fdata.forEach(function(f) {
+    var fr = S * 0.017 * f[2];
+    bgX.beginPath(); bgX.arc(f[0], f[1], fr, 0, Math.PI*2);
+    bgX.fillStyle = 'rgba(128,28,50,0.40)'; bgX.fill();
+    bgX.beginPath(); bgX.arc(f[0], f[1], fr * 0.40, 0, Math.PI*2);
+    bgX.fillStyle = 'rgba(162,112,16,0.65)'; bgX.fill();
   });
 
-  /* ── Chains + lanterns ────────────────────────────── */
+  /* Lanterns hanging from branch tips */
   var lanterns = [
-    { ax: W*0.235, ay: H*0.08,  chainLen: H*0.135, sc: 1.12 },
-    { ax: W*0.295, ay: H*0.22,  chainLen: H*0.120, sc: 0.88 },
-    { ax: W*0.065, ay: H*0.44,  chainLen: H*0.105, sc: 0.76 },
+    {ax: W*0.235, ay: H*0.08,  chainLen: H*0.135, sc: 1.12},
+    {ax: W*0.295, ay: H*0.22,  chainLen: H*0.120, sc: 0.88},
+    {ax: W*0.065, ay: H*0.44,  chainLen: H*0.105, sc: 0.76},
   ];
 
   lanterns.forEach(function(l) {
     var lx = l.ax, ly = l.ay + l.chainLen;
+    var lw = W*0.018*l.sc, lh = H*0.10*l.sc;
 
     /* Chain */
-    bgX.strokeStyle = 'rgba(80,44,10,0.38)'; bgX.lineWidth = 1.2;
+    bgX.strokeStyle = 'rgba(80,44,10,0.36)'; bgX.lineWidth = 1.2;
     bgX.beginPath(); bgX.moveTo(lx, l.ay); bgX.lineTo(lx, ly); bgX.stroke();
 
-    var lw = W*0.018*l.sc, lh = H*0.1*l.sc;
-
-    /* Glow halo */
+    /* Outer glow halo */
     var grd = bgX.createRadialGradient(lx, ly+lh*0.35, 0, lx, ly+lh*0.35, lw*5);
-    grd.addColorStop(0,   'rgba(210,140,20,0.28)');
+    grd.addColorStop(0,   'rgba(210,140,20,0.30)');
     grd.addColorStop(0.5, 'rgba(190,110,10,0.10)');
     grd.addColorStop(1,   'rgba(0,0,0,0)');
     bgX.fillStyle = grd;
     bgX.beginPath(); bgX.arc(lx, ly+lh*0.35, lw*5.5, 0, Math.PI*2); bgX.fill();
 
-    /* Body */
-    bgX.fillStyle = 'rgba(80,44,10,0.40)';
+    /* Lantern body (hexagonal silhouette) */
+    bgX.fillStyle = 'rgba(80,44,10,0.42)';
     bgX.beginPath();
-    bgX.moveTo(lx - lw*0.18, ly);
-    bgX.lineTo(lx - lw*0.56, ly+lh*0.22);
-    bgX.lineTo(lx - lw*0.62, ly+lh*0.52);
-    bgX.lineTo(lx - lw*0.46, ly+lh*0.76);
-    bgX.lineTo(lx - lw*0.18, ly+lh*0.90);
-    bgX.lineTo(lx,            ly+lh*0.96);
-    bgX.lineTo(lx + lw*0.18, ly+lh*0.90);
-    bgX.lineTo(lx + lw*0.46, ly+lh*0.76);
-    bgX.lineTo(lx + lw*0.62, ly+lh*0.52);
-    bgX.lineTo(lx + lw*0.56, ly+lh*0.22);
-    bgX.lineTo(lx + lw*0.18, ly);
+    bgX.moveTo(lx,            ly);
+    bgX.lineTo(lx - lw*0.52,  ly+lh*0.20);
+    bgX.lineTo(lx - lw*0.60,  ly+lh*0.50);
+    bgX.lineTo(lx - lw*0.44,  ly+lh*0.74);
+    bgX.lineTo(lx - lw*0.16,  ly+lh*0.88);
+    bgX.lineTo(lx,             ly+lh*0.94);
+    bgX.lineTo(lx + lw*0.16,  ly+lh*0.88);
+    bgX.lineTo(lx + lw*0.44,  ly+lh*0.74);
+    bgX.lineTo(lx + lw*0.60,  ly+lh*0.50);
+    bgX.lineTo(lx + lw*0.52,  ly+lh*0.20);
     bgX.closePath(); bgX.fill();
-    bgX.fillRect(lx - lw*0.22, ly - lh*0.07, lw*0.44, lh*0.10);
+    /* Top cap */
+    bgX.fillRect(lx - lw*0.20, ly - lh*0.08, lw*0.40, lh*0.10);
+    /* Bottom tassel nub */
+    bgX.beginPath(); bgX.arc(lx, ly+lh*0.96, lw*0.12, 0, Math.PI*2); bgX.fill();
 
-    /* Inner flame */
-    var inn = bgX.createRadialGradient(lx, ly+lh*0.46, 0, lx, ly+lh*0.46, lw*0.50);
-    inn.addColorStop(0, 'rgba(200,140,30,0.65)');
+    /* Inner flame glow */
+    var inn = bgX.createRadialGradient(lx, ly+lh*0.45, 0, lx, ly+lh*0.45, lw*0.52);
+    inn.addColorStop(0, 'rgba(200,140,30,0.68)');
     inn.addColorStop(1, 'rgba(0,0,0,0)');
     bgX.fillStyle = inn;
     bgX.beginPath();
-    bgX.ellipse(lx, ly+lh*0.46, lw*0.36, lh*0.30, 0, 0, Math.PI*2);
+    bgX.ellipse(lx, ly+lh*0.45, lw*0.38, lh*0.32, 0, 0, Math.PI*2);
     bgX.fill();
   });
 }
