@@ -56,7 +56,7 @@ body {
 .mandala-wrap {
   display: flex;
   justify-content: center;
-  padding-top: 44px;
+  padding-top: 14vh;
   opacity: 0;
   animation: rise 1.3s ease 0.1s both;
 }
@@ -736,14 +736,100 @@ function drawMandala(t) {
   petalRing(104, 18, 16, MGOLD,  0.32, s);  mring(92,  MGOLD, 0.16, 0.5);
   petalRing(76,  14, 14, MGLOW,  0.38, -s); mring(65,  MGOLD, 0.16, 0.5);
   petalRing(52,   8, 13, MGOLD,  0.46, ms); mring(42,  MGOLD, 0.20, 0.5);
-  petalRing(31,   8, 10, MGLOW,  0.58, -ms);mring(21,  MGOLD, 0.25, 0.5);
-  petalRing(13,   6,   8, MROSE, 0.62, s*1.6);
-  mct.beginPath(); mct.arc(cx,cy,8,0,Math.PI*2);
-  mct.fillStyle=MGOLD; mct.globalAlpha=0.65; mct.fill(); mct.globalAlpha=1;
-  mct.font='bold 15px serif'; mct.fillStyle='#EDE3CB'; mct.globalAlpha=0.88;
-  mct.textAlign='center'; mct.textBaseline='middle';
-  mct.fillText('ॐ', cx, cy+1); mct.globalAlpha=1;
+  mring(21, MGOLD, 0.25, 0.5);
+  /* Large OM glowing behind Ganesha — size 38px (was 15px) */
+  var omGlow = 0.30 + 0.15 * Math.sin(t * 0.0013);
+  mct.font = 'bold 38px serif';
+  mct.fillStyle = MGOLD; mct.globalAlpha = omGlow;
+  mct.textAlign = 'center'; mct.textBaseline = 'middle';
+  mct.fillText('ॐ', cx, cy + 4);
+  mct.globalAlpha = 1;
+  /* Ganesha on top */
+  drawGanesha(t);
   requestAnimationFrame(drawMandala);
+}
+
+/* ── Lord Ganesha silhouette (animated) ─────────── */
+function drawGanesha(t) {
+  var pulse = 0.97 + 0.03 * Math.sin(t * 0.0016);
+  mct.save();
+  mct.translate(cx, cy + 4);
+
+  /* Warm nimbus / prabha halo behind figure */
+  var halo = mct.createRadialGradient(0, 2, 3, 0, 2, 38);
+  halo.addColorStop(0,    'rgba(205,148,22,0.42)');
+  halo.addColorStop(0.55, 'rgba(185,118,10,0.15)');
+  halo.addColorStop(1,    'rgba(0,0,0,0)');
+  mct.fillStyle = halo;
+  mct.beginPath(); mct.arc(0, 2, 38, 0, Math.PI*2); mct.fill();
+
+  mct.scale(pulse, pulse);
+  var G = MROSE;   /* #8C1E34 deep burgundy */
+
+  /* ── Ears (large fan-shaped) ── */
+  mct.fillStyle = G;
+  mct.beginPath(); mct.ellipse(-18,-5,11,14,-0.35,0,Math.PI*2); mct.fill();
+  mct.fillStyle = 'rgba(140,30,52,0.42)';
+  mct.beginPath(); mct.ellipse(-18,-5, 6, 8,-0.35,0,Math.PI*2); mct.fill();
+  mct.fillStyle = G;
+  mct.beginPath(); mct.ellipse( 18,-5,11,14, 0.35,0,Math.PI*2); mct.fill();
+  mct.fillStyle = 'rgba(140,30,52,0.42)';
+  mct.beginPath(); mct.ellipse( 18,-5, 6, 8, 0.35,0,Math.PI*2); mct.fill();
+
+  /* ── Crown (mukut) — three gold spires + base band ── */
+  mct.fillStyle = MGOLD; mct.globalAlpha = 0.88;
+  [[-9,-25,-4,-37],[0,-27,0,-41],[9,-25,4,-37]].forEach(function(c) {
+    mct.beginPath(); mct.moveTo(c[0]-4,c[1]); mct.lineTo(c[2],c[3]); mct.lineTo(c[0]+4,c[1]); mct.closePath(); mct.fill();
+  });
+  mct.fillRect(-14,-28,28,5);
+  mct.globalAlpha = 1;
+
+  /* ── Head ── */
+  mct.fillStyle = G;
+  mct.beginPath(); mct.ellipse(0,-10,15,18,0,0,Math.PI*2); mct.fill();
+
+  /* Third eye / tikka */
+  mct.fillStyle = MGOLD; mct.globalAlpha = 0.86;
+  mct.beginPath(); mct.arc(0,-22,3,0,Math.PI*2); mct.fill();
+  mct.globalAlpha = 1;
+
+  /* Eyes */
+  [[-6,-15],[6,-15]].forEach(function(e) {
+    mct.fillStyle = '#EDE3CB';
+    mct.beginPath(); mct.ellipse(e[0],e[1],3,2,0,0,Math.PI*2); mct.fill();
+    mct.fillStyle = '#2E1008';
+    mct.beginPath(); mct.arc(e[0],e[1],1.3,0,Math.PI*2); mct.fill();
+  });
+
+  /* ── Trunk (curling left — auspicious) ── */
+  mct.strokeStyle = G; mct.lineWidth = 5; mct.lineCap = 'round'; mct.lineJoin = 'round';
+  mct.beginPath();
+  mct.moveTo(-2,-1);
+  mct.bezierCurveTo(-5, 8,-15,12,-18, 8);
+  mct.bezierCurveTo(-21, 4,-19,-1,-16,-3);
+  mct.stroke();
+
+  /* ── Body (Udara / pot-belly) ── */
+  mct.fillStyle = G;
+  mct.beginPath(); mct.ellipse(0,20,15,17,0,0,Math.PI*2); mct.fill();
+
+  /* Navel gem */
+  mct.fillStyle = MGOLD; mct.globalAlpha = 0.70;
+  mct.beginPath(); mct.arc(0,22,2.5,0,Math.PI*2); mct.fill();
+  mct.globalAlpha = 1;
+
+  /* ── Four arms ── */
+  mct.strokeStyle = G; mct.lineWidth = 3.5; mct.lineCap = 'round';
+  [[-13,7,-22,-8],[13,7,22,-8],[-13,7,-20,24],[13,7,20,24]].forEach(function(a) {
+    mct.beginPath(); mct.moveTo(a[0],a[1]); mct.lineTo(a[2],a[3]); mct.stroke();
+  });
+
+  /* Laddoo (modak) in lower-left hand */
+  mct.fillStyle = MGLOW; mct.globalAlpha = 0.82;
+  mct.beginPath(); mct.arc(-20,26,4.5,0,Math.PI*2); mct.fill();
+  mct.globalAlpha = 1;
+
+  mct.restore();
 }
 requestAnimationFrame(drawMandala);
 
