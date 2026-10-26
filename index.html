@@ -1,0 +1,411 @@
+<title>Sand & Amisha</title>
+
+<style>
+  :root {
+    --bg:           #0C0917;
+    --bg-glow:      #1A1430;
+    --gold:         #C4901C;
+    --gold-light:   #E2B644;
+    --gold-pale:    rgba(196, 144, 28, 0.13);
+    --saffron:      #D45826;
+    --cream:        #F4E8D0;
+    --cream-muted:  #9E8A6E;
+    --border:       rgba(196, 144, 28, 0.22);
+    --border-mid:   rgba(196, 144, 28, 0.38);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse 80% 55% at 50% 0%, var(--bg-glow) 0%, transparent 65%),
+      radial-gradient(circle at 1px 1px, rgba(196,144,28,0.055) 1px, transparent 0);
+    background-size: 100% 100%, 30px 30px;
+    color: var(--cream);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 28px 88px;
+  }
+
+  /* ── Mandala ─────────────────────────────────── */
+  .mandala-wrap {
+    display: flex;
+    justify-content: center;
+    padding-top: 56px;
+    opacity: 0;
+    animation: rise 1.1s ease 0.1s both;
+  }
+
+  /* ── Hero ─────────────────────────────────────── */
+  .hero {
+    text-align: center;
+    margin-top: -24px;
+    opacity: 0;
+    animation: rise 1.1s ease 0.45s both;
+  }
+
+  .eyebrow {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+    margin-bottom: 12px;
+  }
+
+  .devanagari {
+    font-size: 1.55rem;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  .names {
+    font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    font-size: clamp(2.9rem, 13vw, 5.4rem);
+    font-weight: 400;
+    line-height: 1.0;
+    color: var(--gold-light);
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+  }
+
+  .names .amp {
+    color: var(--saffron);
+    font-style: italic;
+    display: inline-block;
+    margin: 0 0.12em;
+    font-size: 0.75em;
+    vertical-align: 0.06em;
+  }
+
+  /* ── Ornament divider ─────────────────────────── */
+  .orn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 30px 0 26px;
+    opacity: 0;
+    animation: rise 1.1s ease 0.7s both;
+  }
+
+  .orn-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to var(--side, right), transparent, var(--border-mid));
+  }
+  .orn-line:first-child { --side: right; }
+  .orn-line:last-child  { --side: left;  }
+
+  /* ── Invite text ──────────────────────────────── */
+  .invite-text {
+    text-align: center;
+    font-size: 0.93rem;
+    font-style: italic;
+    color: var(--cream-muted);
+    line-height: 1.9;
+    opacity: 0;
+    animation: rise 1.1s ease 0.82s both;
+  }
+
+  /* ── Details ──────────────────────────────────── */
+  .details {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    border: 1px solid var(--border);
+    margin-top: 36px;
+    opacity: 0;
+    animation: rise 1.1s ease 0.96s both;
+  }
+
+  .d-sep { background: var(--border); }
+
+  .d-item {
+    padding: 26px 14px;
+    text-align: center;
+  }
+
+  .d-label {
+    font-family: system-ui, sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+    margin-bottom: 10px;
+  }
+
+  .d-value {
+    font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    font-size: 1rem;
+    color: var(--cream);
+    line-height: 1.45;
+  }
+
+  .d-sub {
+    font-size: 0.76rem;
+    color: var(--gold);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* ── Venue banner ─────────────────────────────── */
+  .venue-banner {
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 26px 32px;
+    text-align: center;
+    opacity: 0;
+    animation: rise 1.1s ease 1.06s both;
+  }
+
+  .venue-pin {
+    display: block;
+    width: 1px;
+    height: 24px;
+    background: linear-gradient(to bottom, var(--border-mid), transparent);
+    margin: 0 auto 14px;
+  }
+
+  .venue-name {
+    font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    font-size: 1.45rem;
+    color: var(--gold-light);
+    margin-bottom: 5px;
+  }
+
+  .venue-place {
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+  }
+
+  /* ── Closing ──────────────────────────────────── */
+  .closing {
+    text-align: center;
+    margin-top: 52px;
+    opacity: 0;
+    animation: rise 1.1s ease 1.18s both;
+  }
+
+  .closing p {
+    font-style: italic;
+    color: var(--cream-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .closing-ornament {
+    margin: 18px auto 0;
+    width: 60px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Keyframe ─────────────────────────────────── */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; }
+  }
+
+  @media (max-width: 480px) {
+    .details {
+      grid-template-columns: 1fr;
+    }
+    .d-sep {
+      width: 100%;
+      height: 1px;
+    }
+    .d-item { padding: 20px 20px; }
+  }
+</style>
+
+<main>
+  <div class="page">
+
+    <!-- Mandala (canvas) -->
+    <div class="mandala-wrap">
+      <canvas id="mandala" width="264" height="264" aria-hidden="true"></canvas>
+    </div>
+
+    <!-- Hero: blessing + names -->
+    <section class="hero">
+      <p class="eyebrow">With the blessings of their families</p>
+      <p class="devanagari" aria-label="Shubh Vivah">शुभ विवाह</p>
+      <h1 class="names">Sand <span class="amp">&amp;</span> Amisha</h1>
+    </section>
+
+    <!-- Ornamental divider -->
+    <div class="orn-row" aria-hidden="true">
+      <div class="orn-line"></div>
+      <svg width="52" height="26" viewBox="0 0 52 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="26,2 34,13 26,24 18,13" fill="none" stroke="#C4901C" stroke-width="0.9" opacity="0.7"/>
+        <polygon points="26,7 30,13 26,19 22,13" fill="#C4901C" opacity="0.28"/>
+        <circle cx="26" cy="13" r="2.2" fill="#C4901C" opacity="0.75"/>
+        <line x1="2"  y1="13" x2="15" y2="13" stroke="#C4901C" stroke-width="0.7" opacity="0.55"/>
+        <line x1="37" y1="13" x2="50" y2="13" stroke="#C4901C" stroke-width="0.7" opacity="0.55"/>
+        <circle cx="2"  cy="13" r="1.5" fill="#C4901C" opacity="0.5"/>
+        <circle cx="50" cy="13" r="1.5" fill="#C4901C" opacity="0.5"/>
+      </svg>
+      <div class="orn-line"></div>
+    </div>
+
+    <!-- Invite text -->
+    <p class="invite-text">
+      request the honour of your presence<br>
+      at their wedding celebration
+    </p>
+
+    <!-- Date / Time / Venue -->
+    <div class="details" role="list">
+      <div class="d-item" role="listitem">
+        <div class="d-label">Date</div>
+        <div class="d-value">24th November<br>2026</div>
+        <div class="d-sub">Friday</div>
+      </div>
+      <div class="d-sep" aria-hidden="true"></div>
+      <div class="d-item" role="listitem">
+        <div class="d-label">Time</div>
+        <div class="d-value">8:00 PM</div>
+        <div class="d-sub">onwards</div>
+      </div>
+      <div class="d-sep" aria-hidden="true"></div>
+      <div class="d-item" role="listitem">
+        <div class="d-label">Venue</div>
+        <div class="d-value">Hotel Sri Vinayak</div>
+        <div class="d-sub">Hazaribagh</div>
+      </div>
+    </div>
+
+    <!-- Venue expanded -->
+    <div class="venue-banner">
+      <span class="venue-pin" aria-hidden="true"></span>
+      <p class="venue-name">Hotel Sri Vinayak</p>
+      <p class="venue-place">Hazaribagh &nbsp;·&nbsp; Jharkhand</p>
+    </div>
+
+    <!-- Closing -->
+    <div class="closing">
+      <p>Your presence will make our joy complete.</p>
+      <div class="closing-ornament" aria-hidden="true"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  const canvas = document.getElementById('mandala');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+
+  const GOLD    = '#C4901C';
+  const GLIGHT  = '#E2B644';
+  const SAFF    = '#D45826';
+
+  /* Draw a single petal centred on the origin */
+  function petal(ctx, size, color, alpha) {
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.bezierCurveTo( size * 0.55, -size * 0.35,  size * 0.55,  size * 0.35, 0,  size);
+    ctx.bezierCurveTo(-size * 0.55,  size * 0.35, -size * 0.55, -size * 0.35, 0, -size);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function petalRing(r, n, size, color, alpha, phase) {
+    for (let i = 0; i < n; i++) {
+      const a = phase + (i / n) * Math.PI * 2;
+      ctx.save();
+      ctx.translate(cx + r * Math.cos(a), cy + r * Math.sin(a));
+      ctx.rotate(a + Math.PI / 2);
+      petal(ctx, size, color, alpha);
+      ctx.restore();
+    }
+  }
+
+  function ring(r, color, alpha, w) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = w || 0.7;
+    ctx.globalAlpha = alpha;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function dots(r, n, dotR, color, alpha, phase) {
+    for (let i = 0; i < n; i++) {
+      const a = phase + (i / n) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(cx + r * Math.cos(a), cy + r * Math.sin(a), dotR, 0, Math.PI * 2);
+      ctx.fillStyle   = color;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    const s  = t * 0.00018;   /* slow drift */
+    const ms = t * 0.00034;   /* medium */
+
+    /* Outermost dot ring */
+    dots(122, 40, 1.1, GOLD, 0.28, s);
+
+    ring(116, GOLD, 0.1, 0.5);
+
+    /* Outer petal ring */
+    petalRing(98, 16, 15, GOLD,   0.20,  s);
+    ring(86, GOLD, 0.14, 0.5);
+
+    /* Second ring */
+    petalRing(72, 12, 13, GLIGHT, 0.25, -s);
+    ring(62, GOLD, 0.14, 0.5);
+
+    /* Third ring */
+    petalRing(50,  8, 12, GOLD,   0.32,  ms);
+    ring(40, GOLD, 0.18, 0.5);
+
+    /* Fourth ring */
+    petalRing(30,  8,  9, GLIGHT, 0.42, -ms);
+    ring(20, GOLD, 0.22, 0.5);
+
+    /* Innermost ring */
+    petalRing(13,  6,  7, SAFF,   0.38,  s * 1.6);
+
+    /* Center jewel */
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6.5, 0, Math.PI * 2);
+    ctx.fillStyle   = GLIGHT;
+    ctx.globalAlpha = 0.65;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#0C0917';
+    ctx.fill();
+
+    requestAnimationFrame(draw);
+  }
+
+  requestAnimationFrame(draw);
+})();
+</script>
