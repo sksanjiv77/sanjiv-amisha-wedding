@@ -186,6 +186,32 @@
     color: var(--cream-muted);
   }
 
+  .map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 7px 16px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .map-link:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .map-link:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
   /* ── Closing ──────────────────────────────────── */
   .closing {
     text-align: center;
@@ -292,6 +318,10 @@
       <span class="venue-pin" aria-hidden="true"></span>
       <p class="venue-name">Hotel Sri Vinayak</p>
       <p class="venue-place">Hazaribagh &nbsp;·&nbsp; Jharkhand</p>
+      <a class="map-link" href="https://maps.google.com/?q=Hotel+Sri+Vinayak+Hazaribagh" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        View on Maps
+      </a>
     </div>
 
     <!-- Closing -->
