@@ -106,6 +106,12 @@ body {
   display: inline;
   margin: 0 0.08em;
 }
+.name-a {
+  display: inline-block;
+}
+.name-a::first-letter {
+  font-size: 1.18em;
+}
 
 .orn-row {
   display: flex; align-items: center; gap: 10px;
@@ -254,7 +260,7 @@ body {
     <section class="hero">
       <p class="eyebrow">With the blessings of their families</p>
       <p class="devanagari" aria-label="Shubh Vivah">|| शुभ विवाह ||</p>
-      <h1 class="names">Sanjiv <span class="amp">&amp;</span> Amisha</h1>
+      <h1 class="names">Sanjiv <span class="amp">&amp;</span> <span class="name-a">Amisha</span></h1>
     </section>
 
     <div class="orn-row" aria-hidden="true">
