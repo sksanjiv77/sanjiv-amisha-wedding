@@ -1,6 +1,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <title>Sanjiv & Amisha</title>
 
 <style>
@@ -85,16 +85,16 @@ body {
   animation: glow-pulse 4s ease-in-out infinite;
 }
 
-/* ── Script names (Great Vibes) ─────────────────── */
+/* ── Names (Cormorant Garamond italic) ───────────── */
 .names {
-  font-family: 'Great Vibes', 'Palatino Linotype', cursive;
-  font-size: clamp(3.2rem, 9.5vw, 5.8rem);
-  font-style: normal;
-  font-weight: 400;
+  font-family: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+  font-size: clamp(3.4rem, 10vw, 6.2rem);
+  font-style: italic;
+  font-weight: 600;
   line-height: 1.1;
   color: #6A0E26;
-  letter-spacing: 0.01em;
-  text-shadow: 0 2px 14px rgba(106,14,38,0.22);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 16px rgba(106,14,38,0.25);
   white-space: nowrap;
   display: block;
   text-align: center;
@@ -102,15 +102,11 @@ body {
 
 .names .amp {
   color: var(--gold);
-  font-size: 0.82em;
+  font-size: 0.80em;
+  font-style: italic;
+  font-weight: 400;
   display: inline;
-  margin: 0 0.08em;
-}
-.name-a {
-  display: inline-block;
-}
-.name-a::first-letter {
-  font-size: 1.18em;
+  margin: 0 0.10em;
 }
 
 .orn-row {
@@ -254,13 +250,13 @@ body {
   <div class="page">
 
     <div class="mandala-wrap">
-      <canvas id="mandala" width="290" height="290" aria-hidden="true"></canvas>
+      <canvas id="mandala" width="360" height="360" aria-hidden="true"></canvas>
     </div>
 
     <section class="hero">
       <p class="eyebrow">With the blessings of their families</p>
       <p class="devanagari" aria-label="Shubh Vivah">|| शुभ विवाह ||</p>
-      <h1 class="names">Sanjiv <span class="amp">&amp;</span> <span class="name-a">Amisha</span></h1>
+      <h1 class="names">Sanjiv <span class="amp">&amp;</span> Amisha</h1>
     </section>
 
     <div class="orn-row" aria-hidden="true">
@@ -735,22 +731,87 @@ function dotRing(r, n, dr, color, alpha, phase) {
   }
 }
 
+/* Outer lotus petal ring — stroke-outlined teardrops pointing outward */
+function outerLotus(r, n, h, w, color, alpha, phase) {
+  for (var i=0; i<n; i++) {
+    var a = phase + (i/n)*Math.PI*2;
+    mct.save();
+    mct.translate(cx+(r+h/2)*Math.cos(a), cy+(r+h/2)*Math.sin(a));
+    mct.rotate(a+Math.PI/2);
+    mct.beginPath();
+    mct.moveTo(0,-h/2);
+    mct.bezierCurveTo( w*0.50,-h*0.08,  w*0.52, h*0.28, 0, h/2);
+    mct.bezierCurveTo(-w*0.52, h*0.28, -w*0.50,-h*0.08, 0,-h/2);
+    mct.closePath();
+    mct.strokeStyle=color; mct.lineWidth=1.3; mct.globalAlpha=alpha; mct.stroke(); mct.globalAlpha=1;
+    mct.restore();
+  }
+}
+
+/* 4-petal flower at a point */
+function flowerAt(x, y, r, color, alpha) {
+  for (var j=0; j<4; j++) {
+    var a = j/4*Math.PI*2;
+    mct.save(); mct.translate(x,y); mct.rotate(a);
+    mct.beginPath();
+    mct.moveTo(0,0);
+    mct.bezierCurveTo(r*0.45,-r*0.25, r*0.45,-r*0.75, 0,-r);
+    mct.bezierCurveTo(-r*0.45,-r*0.75,-r*0.45,-r*0.25, 0,0);
+    mct.closePath();
+    mct.fillStyle=color; mct.globalAlpha=alpha; mct.fill(); mct.globalAlpha=1;
+    mct.restore();
+  }
+  mct.beginPath(); mct.arc(x,y,r*0.22,0,Math.PI*2);
+  mct.fillStyle=color; mct.globalAlpha=alpha*1.15; mct.fill(); mct.globalAlpha=1;
+}
+
 function drawMandala(t) {
   mct.clearRect(0,0,W,H);
-  var s = t*0.00017, ms = t*0.00033;
-  dotRing(128, 42, 1.1, MGOLD, 0.45, s);    mring(122, MGOLD, 0.16, 0.5);
-  petalRing(104, 18, 16, MGOLD,  0.32, s);  mring(92,  MGOLD, 0.16, 0.5);
-  petalRing(76,  14, 14, MGLOW,  0.38, -s); mring(65,  MGOLD, 0.16, 0.5);
-  petalRing(52,   8, 13, MGOLD,  0.46, ms); mring(42,  MGOLD, 0.20, 0.5);
-  mring(21, MGOLD, 0.25, 0.5);
-  /* Large OM glowing behind Ganesha — size 38px (was 15px) */
-  var omGlow = 0.30 + 0.15 * Math.sin(t * 0.0013);
-  mct.font = 'bold 38px serif';
-  mct.fillStyle = MGOLD; mct.globalAlpha = omGlow;
+  var s=t*0.00017, ms=t*0.00033;
+
+  /* ── Outermost: 12 lotus petals (stroke-outlined) ── */
+  outerLotus(136, 12, 26, 15, MGOLD, 0.40, s);
+  for (var i=0; i<12; i++) {
+    var a = s + (i/12+1/24)*Math.PI*2;
+    mct.save(); mct.translate(cx+152*Math.cos(a), cy+152*Math.sin(a)); mct.rotate(a);
+    mct.beginPath(); mct.moveTo(0,-4); mct.lineTo(3.5,0); mct.lineTo(0,4); mct.lineTo(-3.5,0); mct.closePath();
+    mct.fillStyle=MGOLD; mct.globalAlpha=0.30; mct.fill(); mct.globalAlpha=1;
+    mct.restore();
+  }
+
+  /* ── Outer border double-ring ── */
+  mring(136, MGOLD, 0.32, 1.0);
+  mring(133, MGOLD, 0.16, 0.5);
+
+  /* ── Bead / dot ring ── */
+  dotRing(128, 44, 1.3, MGOLD, 0.52, s);
+  mring(122, MGOLD, 0.24, 0.7);
+
+  /* ── Main petal ring (18 petals) + 6 flower accents ── */
+  petalRing(110, 18, 18, MGOLD, 0.34, s);
+  for (var i=0; i<6; i++) {
+    var a = ms + i/6*Math.PI*2;
+    flowerAt(cx+110*Math.cos(a), cy+110*Math.sin(a), 5.5, MGOLD, 0.44);
+  }
+  mring(102, MGOLD, 0.24, 0.7);
+  mring(100, MGOLD, 0.13, 0.4);
+
+  /* ── Second petal ring (14 petals) ── */
+  petalRing(86, 14, 16, MGLOW, 0.42, -s);
+  mring(76, MGOLD, 0.24, 0.7);
+
+  /* ── Inner petal ring (8 petals) ── */
+  petalRing(64, 8, 13, MGOLD, 0.50, ms);
+  mring(56, MGOLD, 0.28, 0.8);
+  mring(50, MGOLD, 0.16, 0.5);
+  mring(44, MGOLD, 0.32, 0.9);
+
+  /* ── OM glow behind Ganesha ── */
+  var omGlow = 0.28 + 0.14 * Math.sin(t * 0.0013);
+  mct.font = 'bold 42px serif'; mct.fillStyle = MGOLD; mct.globalAlpha = omGlow;
   mct.textAlign = 'center'; mct.textBaseline = 'middle';
-  mct.fillText('ॐ', cx, cy + 4);
-  mct.globalAlpha = 1;
-  /* Ganesha on top */
+  mct.fillText('ॐ', cx, cy + 4); mct.globalAlpha = 1;
+
   drawGanesha(t);
   requestAnimationFrame(drawMandala);
 }
@@ -760,7 +821,7 @@ function drawGanesha(t) {
   var pulse = 0.97 + 0.03 * Math.sin(t * 0.0016);
   mct.save();
   mct.translate(cx, cy);
-  mct.scale(pulse, pulse);
+  mct.scale(1.2*pulse, 1.2*pulse);
 
   /* Warm nimbus halo */
   var gl = mct.createRadialGradient(0, 2, 2, 0, 2, 42);
