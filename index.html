@@ -267,6 +267,47 @@ body {
   .d-item  { padding: 20px; }
   .page    { padding: 0 20px 80px; }
 }
+
+/* ── Music toggle button ──────────────────── */
+.music-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 11, 26, 0.9);
+  border: 1px solid var(--border-str);
+  color: var(--gold);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.63rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 18px 10px 14px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.25s, color 0.25s;
+  outline: none;
+}
+.music-btn:hover,
+.music-btn:focus-visible {
+  border-color: var(--gold-light);
+  color: var(--gold-light);
+}
+.music-btn.playing { border-color: var(--gold-light); }
+.music-btn .icon-pause { display: none; }
+.music-btn.playing .icon-play  { display: none; }
+.music-btn.playing .icon-pause { display: block; }
+
+@keyframes music-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+.music-btn.playing .icon-pause {
+  animation: music-pulse 1.8s ease-in-out infinite;
+}
 </style>
 
 <!-- Petal background canvas -->
@@ -422,6 +463,18 @@ body {
 
   </div>
 </main>
+
+<!-- Music toggle -->
+<button id="music-btn" class="music-btn" aria-label="Toggle wedding music">
+  <svg class="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+  </svg>
+  <svg class="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <rect x="6" y="4" width="4" height="16" rx="1"/>
+    <rect x="14" y="4" width="4" height="16" rx="1"/>
+  </svg>
+  <span id="music-label">Music</span>
+</button>
 
 <script>
 (function () {
@@ -580,6 +633,124 @@ function drawMandala(t) {
   requestAnimationFrame(drawMandala);
 }
 requestAnimationFrame(drawMandala);
+
+
+/* ── Wedding music (Web Audio, Khamaj raga) ── */
+var music = (function () {
+  var ctx = null, mg = null, drones = [], loopTimer = null, on = false;
+
+  var N = {
+    C3:130.81, G3:196.00,
+    C4:261.63, D4:293.66, E4:329.63, F4:349.23,
+    G4:392.00, A4:440.00, Bb4:466.16,
+    C5:523.25, D5:587.33
+  };
+
+  function boot() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    ctx = new AC();
+    mg  = ctx.createGain();
+    mg.gain.value = 0;
+    mg.connect(ctx.destination);
+    return true;
+  }
+
+  function note(freq, start, dur, vol) {
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    var f = ctx.createBiquadFilter();
+    o.type = 'sawtooth';
+    o.frequency.value = freq;
+    f.type = 'lowpass';
+    f.frequency.value = Math.min(1700, 560 + freq * 1.9);
+    f.Q.value = 2.8;
+    g.gain.setValueAtTime(0, start);
+    g.gain.linearRampToValueAtTime(vol, start + 0.035);
+    g.gain.setValueAtTime(vol * 0.52, start + Math.min(0.18, dur * 0.38));
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    o.connect(f); f.connect(g); g.connect(mg);
+    o.start(start);
+    o.stop(start + dur + 0.08);
+  }
+
+  /* Tanpura drone: Sa Pa Sa' — the pulse of Indian classical music */
+  function dronOn() {
+    [[N.C3, 1], [N.G3, 1.002], [N.C4, 0.999]].forEach(function (p) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = p[0] * p[1];
+      g.gain.value = 0.032;
+      o.connect(g); g.connect(mg);
+      o.start();
+      drones.push(o);
+    });
+  }
+
+  function dronOff() {
+    drones.forEach(function (o) { try { o.stop(); } catch (e) {} });
+    drones = [];
+  }
+
+  /* Khamaj raga phrase — ~16 s loop */
+  function phrase(when) {
+    var t = when, b = 0.44;
+    var seq = [
+      [N.G4, b*.5], [N.A4,  b*.5], [N.C5,  b*1.0], [N.Bb4, b*.5],
+      [N.A4, b*1.0],[N.G4,  b*2.0],
+      [N.E4, b*.5], [N.G4,  b*.5], [N.A4,  b*.5],  [N.Bb4, b*.5],
+      [N.C5, b*.5], [N.Bb4, b*.5], [N.A4,  b*.5],  [N.G4,  b*1.5],
+      [N.F4, b*.5], [N.E4,  b*.5], [N.D4,  b*.5],  [N.E4,  b*.5],
+      [N.G4, b*.5], [N.A4,  b*.5], [N.G4,  b*.5],  [N.E4,  b*.5],
+      [N.D4, b*.5], [N.C4,  b*2.5]
+    ];
+    seq.forEach(function (s) { note(s[0], t, s[1] * 0.87, 0.2); t += s[1]; });
+    return t - when;
+  }
+
+  function loop() {
+    if (!on) return;
+    var dur = phrase(ctx.currentTime + 0.05);
+    loopTimer = setTimeout(loop, (dur - 0.25) * 1000);
+  }
+
+  function start() {
+    on = true;
+    mg.gain.cancelScheduledValues(ctx.currentTime);
+    mg.gain.setValueAtTime(0, ctx.currentTime);
+    mg.gain.linearRampToValueAtTime(0.78, ctx.currentTime + 0.9);
+    dronOn();
+    loop();
+  }
+
+  function stop() {
+    on = false;
+    clearTimeout(loopTimer);
+    dronOff();
+    var now = ctx.currentTime;
+    mg.gain.cancelScheduledValues(now);
+    mg.gain.setValueAtTime(mg.gain.value, now);
+    mg.gain.linearRampToValueAtTime(0, now + 0.7);
+  }
+
+  return {
+    toggle: function () {
+      if (!ctx && !boot()) return false;
+      if (ctx.state === 'suspended') ctx.resume();
+      if (on) { stop(); } else { start(); }
+      return on;
+    }
+  };
+})();
+
+/* Wire up button */
+var mBtn = document.getElementById('music-btn');
+var mLbl = document.getElementById('music-label');
+mBtn.addEventListener('click', function () {
+  var playing = music.toggle();
+  mBtn.classList.toggle('playing', playing);
+  mLbl.textContent = playing ? 'Pause' : 'Music';
+});
 
 })();
 </script>
